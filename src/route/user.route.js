@@ -4,15 +4,15 @@ import { Router } from "express";
 import {
   registerUser,
   loginUser,
-  logOutUser, // ✅ was `logOutUser`
+  logOutUser,
   refreshAccessToken,
   changeCurrentPassword,
   getCurrentUser,
-  updateAccountDetails, // ✅ was `updateaccountDetails`
+  updateAccountDetails,
   updateUserAvatar,
   updateUsercoverimage,
   getUserChannelProfile,
-  getWatchHistory, // ✅ was `getWatchhistory`
+  getWatchHistory,
   addVideoToWatchHistory,
   clearWatchHistory,
   removeFromWatchHistory,
@@ -25,21 +25,13 @@ const router = Router();
 
 router.route("/register").post(
   upload.fields([
-    {
-      name: "avatar",
-      maxCount: 1,
-    },
-    {
-      name: "coverimage",
-      maxCount: 1,
-    },
+    { name: "avatar", maxCount: 1 },
+    { name: "coverimage", maxCount: 1 },
   ]),
   registerUser
 );
 
 router.route("/login").post(loginUser);
-
-// Secured routes
 router.route("/logout").post(verifyJWT, logOutUser);
 router.route("/refresh-token").post(refreshAccessToken);
 router.route("/change-password").post(verifyJWT, changeCurrentPassword);
