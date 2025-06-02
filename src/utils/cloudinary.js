@@ -16,7 +16,7 @@ const uploadOnCloudinary = async (localFilePath) => {
   try {
     if (!localFilePath) return null;
 
-    // Upload file to Cloudinary
+    // Upload to Cloudinary
     const response = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto",
       folder: "youtube_video",
@@ -25,18 +25,13 @@ const uploadOnCloudinary = async (localFilePath) => {
       access_mode: "public",
     });
 
-    // Delete local file after successful upload
-    if (fs.existsSync(localFilePath)) {
-      fs.unlinkSync(localFilePath);
-    }
+    // Remove local file
+    fs.existsSync(localFilePath) && fs.unlinkSync(localFilePath);
 
     return response;
   } catch (err) {
-    // Try to delete file even if upload fails
-    if (fs.existsSync(localFilePath)) {
-      fs.unlinkSync(localFilePath);
-    }
-
+    // Attempt cleanup on error
+    fs.existsSync(localFilePath) && fs.unlinkSync(localFilePath);
     console.error("Cloudinary Upload Error:", err);
     return null;
   }
