@@ -4,7 +4,9 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
 
+dotenv.config(); // loads from .env by default
 // Initialize express app
 const app = express();
 
@@ -14,7 +16,7 @@ app.use(cookieParser());
 // Enable CORS for specific origin (frontend domain)
 app.use(
   cors({
-    origin: "http://localhost:3000", // fallback to localhost for development
+    origin: process.env.CORS_ORIGIN || "http://localhost:3000", // fallback to localhost for development
     credentials: true,
   })
 );
