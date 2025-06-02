@@ -2,9 +2,6 @@
 
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -13,26 +10,19 @@ cloudinary.config({
 });
 
 const uploadOnCloudinary = async (localFilePath) => {
+  console.log(localFilePath);
   try {
     if (!localFilePath) return null;
-
-    // Upload to Cloudinary
     const response = await cloudinary.uploader.upload(localFilePath, {
-      resource_type: "auto",
-      folder: "youtube_video",
+      resource_type: "auto", // Ensures PDF is treated as a raw file
+      folder: "youtube_video", // Optional: Organize files
       use_filename: true,
       unique_filename: false,
-      access_mode: "public",
+      access_mode: "public", // Ensure public access
     });
-
-    // Remove local file
-    fs.existsSync(localFilePath) && fs.unlinkSync(localFilePath);
-
     return response;
-  } catch (err) {
-    // Attempt cleanup on error
-    fs.existsSync(localFilePath) && fs.unlinkSync(localFilePath);
-    console.error("Cloudinary Upload Error:", err);
+  } catch (er) {
+    fs.unlinkSync(localFilePath);
     return null;
   }
 };
