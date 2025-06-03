@@ -1,7 +1,7 @@
 /** @format */
 
-import mongoose, { isValidObjectId } from "mongoose";
-import { playlist } from "../model/playlist.model.js";
+import mongoose from "mongoose";
+import { Playlist } from "../model/playlist.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -14,7 +14,7 @@ const createplaylist = asyncHandler(async (req, res) => {
     throw new ApiError(400, "All details are required");
   }
 
-  const playlist = await playlist.create({
+  const playlist = await Playlist.create({
     name,
     description,
     userId,
@@ -34,7 +34,7 @@ const getUserplaylists = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid user ID");
   }
 
-  const playlists = await playlist.aggregate([
+  const playlists = await Playlist.aggregate([
     {
       $match: {
         owner: new mongoose.Types.ObjectId(userId),
@@ -109,7 +109,7 @@ const getplaylistById = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid playlist ID");
   }
 
-  const playlist = await playlist.aggregate([
+  const playlist = await Playlist.aggregate([
     {
       $match: {
         _id: new mongoose.Types.ObjectId(playlistId),
@@ -179,21 +179,20 @@ const getplaylistById = asyncHandler(async (req, res) => {
 
 const addVideoToplaylist = asyncHandler(async (req, res) => {
   const { playlistId, videoId } = req.params;
-  if (!playlistId && !videoId) {
-    throw new ApiError(404, "playlistId and videoId not found");
+  if (!playlistId || !videoId) {
+    throw new ApiError(404, "playlistId and videoId are required");
   }
-  const playlist = await playlist
-    .findByIdAndUpdate(
-      playlistId,
-      {
-        $push: {
-          videos: videoId,
-        },
+  const playlist = await Playlist.findByIdAndUpdate(
+    playlistId,
+    {
+      $push: {
+        videos: videoId,
       },
-      {
-        new: true,
-      }
-    )
+    },
+    {
+      new: true,
+    }
+  )
     .populate("videos")
     .populate("owner");
 
@@ -204,22 +203,20 @@ const addVideoToplaylist = asyncHandler(async (req, res) => {
 
 const removeVideoFromplaylist = asyncHandler(async (req, res) => {
   const { playlistId, videoId } = req.params;
-  if (!playlistId && !videoId) {
-    throw new ApiError(404, "playlistId and videoId not found");
+  if (!playlistId || !videoId) {
+    throw new ApiError(404, "playlistId and videoId are required");
   }
-  const playlist = await playlist
-    .findByIdAndUpdate(
-      playlistId,
-      {
-        $pull: {
-          videos: videoId,
-        },
+  const playlist = await Playlist.findByIdAndUpdate(
+    playlistId,
+    {
+      $pull: {
+        videos: videoId,
       },
-      {
-        new: true,
-      }
-    )
-    .populate("videos");
+    },
+    {
+      new: true,
+    }
+  ).populate("videos");
 
   return res
     .status(200)
@@ -228,10 +225,10 @@ const removeVideoFromplaylist = asyncHandler(async (req, res) => {
 
 const deleteplaylist = asyncHandler(async (req, res) => {
   const { playlistId } = req.params;
-  if (!playlistId && !videoId) {
-    throw new ApiError(404, "playlistId and videoId not found");
+  if (!playlistId) {
+    throw new ApiError(404, "playlistId is required");
   }
-  const playlist = await playlist.findByIdAndDelete(playlistId);
+  const playlist = await Playlist.findByIdAndDelete(playlistId);
   return res
     .status(200)
     .json(new ApiResponse(200, playlist, "playlist deleted successfully"));
@@ -240,26 +237,25 @@ const deleteplaylist = asyncHandler(async (req, res) => {
 const updateplaylist = asyncHandler(async (req, res) => {
   const { playlistId } = req.params;
   const { name, description } = req.body;
-  if (!playlistId && !name && !description) {
+  if (!playlistId || (!name && !description)) {
     throw new ApiError(400, "Missing playlist or name or description");
   }
-  const playlist = await playlist.findByIdAndUpdate(
+  const playlist = await Playlist.findByIdAndUpdate(
     playlistId,
     {
       $set: {
-        name: name,
-        description: description,
+        ...(name && { name }),
+        ...(description && { description }),
       },
     },
     {
       new: true,
     }
   );
-  playlist.save();
 
   return res
     .status(200)
-    .json(new ApiResponse(200, playlist, "Update playlist successFully"));
+    .json(new ApiResponse(200, playlist, "Update playlist successfully"));
 });
 
 export {

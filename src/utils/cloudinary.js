@@ -13,11 +13,16 @@ cloudinary.config({
 
 export const uploadOnCloudinary = async (buffer, filename) => {
   return new Promise((resolve, reject) => {
+    const publicId =
+      typeof filename === "string" && filename.includes(".")
+        ? filename.split(".")[0]
+        : `upload_${Date.now()}`; // fallback id if filename invalid
+
     const stream = cloudinary.uploader.upload_stream(
       {
         resource_type: "auto",
         folder: "youtube_video",
-        public_id: filename.split(".")[0],
+        public_id: publicId,
       },
       (error, result) => {
         if (error) return reject(error);

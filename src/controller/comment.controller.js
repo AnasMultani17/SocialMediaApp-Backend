@@ -37,6 +37,9 @@ const getVideoComments = asyncHandler(async (req, res) => {
         as: "ownerDetails",
       },
     },
+    {
+      $unwind: "$ownerDetails",
+    },
   ]);
 
   const options = {
