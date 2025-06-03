@@ -13,15 +13,25 @@ const app = express();
 // Middleware to parse cookies
 app.use(cookieParser());
 
-// Enable CORS for specific origin (frontend domain)
+
+
+// ✅ Setup CORS for frontend origin
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:3000", // fallback to localhost for development
+    origin: process.env.CORS_ORIGIN || "http://localhost:3000",
     credentials: true,
   })
 );
-
-// Middleware to parse incoming JSON payloads (default limit is ~100kb, 16kb is explicitly set below)
+app.use((req, res, next) => {
+  res.setHeader(
+    "Access-Control-Allow-Origin",
+    "https://new-social-media-app-frontned.vercel.app"
+  );
+  // You can also add other CORS headers like:
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  next();
+});
 app.use(
   express.json({
     limit: "16kb", // limit the request body size
