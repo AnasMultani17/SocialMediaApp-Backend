@@ -34,7 +34,7 @@ app.use((req, res, next) => {
 });
 app.use(
   express.json({
-    limit: "16kb", // limit the request body size
+    limit: "50mb", // limit the request body size
   })
 );
 
@@ -42,7 +42,7 @@ app.use(
 app.use(
   express.urlencoded({
     extended: true, // allows nested objects in URL-encoded data
-    limit: "16kb",
+    limit: "50mb",
   })
 );
 
