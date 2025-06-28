@@ -1,5 +1,7 @@
 # Video Sharing Social Media App – Backend
 
+## Overview
+
 This is the **backend API** for the **Video Sharing Social Media App**, built with **Node.js, Express, and MongoDB** to support video publishing, user management, likes, comments, subscriptions, and watch history.
 
 ## Features
