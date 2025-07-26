@@ -1,11 +1,12 @@
 /** @format */
 
-import mongoose, { isValidObjectId } from "mongoose";
+import mongoose from "mongoose";
 import { Tweet } from "../model/tweet.model.js";
 import { User } from "../model/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { io } from "../app.js";
 
 const createTweet = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
@@ -15,15 +16,26 @@ const createTweet = asyncHandler(async (req, res) => {
   if (!req.body) {
     throw new ApiError(400, "Content is required for tweet");
   }
+
   const { content } = req.body;
   if (!content) {
     throw new ApiError(400, "Content is required for tweet");
   }
+
   const tweet = await new Tweet({
     owner: userId,
     content: content,
   }).save();
-  res.status(200).json(new ApiResponse(200, tweet, "Tweet successfull"));
+
+
+  io.emit("new-tweet", {
+    _id: tweet._id,
+    content: tweet.content,
+    owner: userId,
+    createdAt: tweet.createdAt,
+  });
+
+  res.status(200).json(new ApiResponse(200, tweet, "Tweet successful"));
 });
 
 const getUserTweets = asyncHandler(async (req, res) => {
@@ -32,6 +44,7 @@ const getUserTweets = asyncHandler(async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     throw new ApiError(400, "Invalid user ID");
   }
+
   const tweet = await Tweet.aggregate([
     {
       $match: {
@@ -40,17 +53,16 @@ const getUserTweets = asyncHandler(async (req, res) => {
     },
     {
       $lookup: {
-        from: "users", 
-        localField: "owner", 
-        foreignField: "_id", 
-        as: "owner"
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
       },
     },
     {
       $unwind: "$owner",
     },
   ]);
-  
 
   if (!tweet.length) {
     throw new ApiError(404, "No tweets found for this user");
@@ -64,6 +76,7 @@ const getUserTweets = asyncHandler(async (req, res) => {
 const updateTweet = asyncHandler(async (req, res) => {
   const { tweetId } = req.params;
   const { content } = req.body;
+
   if (!tweetId) {
     throw new ApiError(400, "Tweet not found");
   }
@@ -73,7 +86,6 @@ const updateTweet = asyncHandler(async (req, res) => {
     { $set: { content: content } },
     { new: true }
   );
-  
 
   return res
     .status(200)
@@ -82,10 +94,13 @@ const updateTweet = asyncHandler(async (req, res) => {
 
 const deleteTweet = asyncHandler(async (req, res) => {
   const { tweetId } = req.params;
+
   if (!tweetId) {
     throw new ApiError(400, "Tweet not found");
   }
+
   const tweet = await Tweet.findByIdAndDelete(tweetId);
+
   return res
     .status(200)
     .json(new ApiResponse(200, tweet, "Tweet deleted successfully"));
