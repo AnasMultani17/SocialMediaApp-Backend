@@ -198,13 +198,23 @@ const updateVideo = asyncHandler(async (req, res) => {
  */
 const deleteVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
+  const userId = req.user?._id;
 
   if (!mongoose.Types.ObjectId.isValid(videoId)) {
     throw new ApiError(400, "Invalid Video ID");
   }
 
-  const deleted = await Video.findByIdAndDelete(videoId);
+  const video = await Video.findById(videoId); 
+  if (!video) {
+    throw new ApiError(404, "Video not found");
+  }
 
+  if (video.owner.toString() !== userId.toString()) {
+ 
+    throw new ApiError(403, "Unauthorized access"); 
+  }
+
+  const deleted = await Video.findByIdAndDelete(videoId);
   if (!deleted) {
     throw new ApiError(404, "Video not found");
   }
@@ -213,6 +223,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, deleted, "Video deleted successfully"));
 });
+
 
 /**
  * PATCH /videos/:videoId/toggle
