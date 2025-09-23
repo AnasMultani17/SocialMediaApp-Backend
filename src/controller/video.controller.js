@@ -203,16 +203,27 @@ const deleteVideo = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid Video ID");
   }
 
-  const deleted = await Video.findByIdAndDelete(videoId);
+  const userId = req.user._id;
 
-  if (!deleted) {
+  // Fetch the video first
+  const video = await Video.findById(videoId);
+  if (!video) {
     throw new ApiError(404, "Video not found");
   }
 
+  // Check if the logged-in user is the owner
+  if (!video.owner.equals(userId)) {
+    throw new ApiError(403, "Invalid Access"); // use 403 (Forbidden), not 404
+  }
+
+  // Delete the video
+  await Video.findByIdAndDelete(videoId);
+
   return res
     .status(200)
-    .json(new ApiResponse(200, deleted, "Video deleted successfully"));
+    .json(new ApiResponse(200, null, "Video deleted successfully"));
 });
+
 
 /**
  * PATCH /videos/:videoId/toggle
