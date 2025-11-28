@@ -146,6 +146,13 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Password and confirm password is not matching");
   }
   const user = await User.findById(req.user?._id);
+  if (user.username == "TempUser") {
+    throw new ApiError(
+      400,
+      "This Temp mail id is used by many users so changing password is not permitted Sorry!!"
+    );
+  }
+
   const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
   if (!isPasswordCorrect) {
     throw new ApiError(400, "Old password is incorrect");
